@@ -11,6 +11,10 @@ override.tf.json
 .terraform.tfvars
 terraform.tfvars
 
+# Generated Terraform output
+output.json
+
+
 # === Python (for Lambda) ===
 __pycache__/
 *.py[cod]

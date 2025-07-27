@@ -11,11 +11,18 @@ resource "aws_apigatewayv2_integration" "lambda_integration" {
   payload_format_version = "2.0"
 }
 
-resource "aws_apigatewayv2_route" "test" {
+#resource "aws_apigatewayv2_route" "test" {
+  #api_id    = aws_apigatewayv2_api.http_api.id
+  #route_key = "GET /test"
+  #target    = "integrations/${aws_apigatewayv2_integration.lambda_integration.id}"
+#}
+
+resource "aws_apigatewayv2_route" "generate_upload_url" {
   api_id    = aws_apigatewayv2_api.http_api.id
-  route_key = "GET /test"
+  route_key = "GET /generate-upload-url"
   target    = "integrations/${aws_apigatewayv2_integration.lambda_integration.id}"
 }
+
 
 # Deploy the API on default stage (Live version of the API) in order to expose routes to the internet
 # dev stage and prod stage options later
