@@ -1,6 +1,7 @@
 import json
 import boto3
 import os
+import urllib.parse
 
 s3_client = boto3.client('s3')
 BUCKET_NAME = os.environ.get('BUCKET_NAME')
@@ -11,32 +12,40 @@ BUCKET_NAME = os.environ.get('BUCKET_NAME')
 # context: metadata about the invocation (timestamp, function name, memory, etc.)
 
 def lambda_handler(event, context):
-    print("Lambda triggered with event:", json.dumps(event))
+    path = event.get("rawPath")
+    query_params = event.get("queryStringParameters") or {}
 
-    # 1. Extract the filename from the query parameters
-    filename = event.get('queryStringParameters', {}).get('filename')
-    if not filename:
-        return {
-            "statusCode": 400,
-            "body": json.dumps({"error": "Missing 'filename' in query parameters"})
-        }
+    if path == "/upload":
+        filename = query_params.get("filename")
+        if not filename:
+            return respond(400, "Missing 'filename' query parameter")
 
-    # 2. Generate the presigned URL
-    try:
-        presigned_url = s3_client.generate_presigned_url(
-            'put_object',
-            Params={'Bucket': BUCKET_NAME, 'Key': filename},
-            ExpiresIn=300  # URL expires in 5 minutes
+        upload_url = s3_client.generate_presigned_url(
+            "put_object",
+            Params={"Bucket": BUCKET_NAME, "Key": filename},
+            ExpiresIn=3600,
         )
-        return {
-            "statusCode": 200,
-            "headers": {"Content-Type": "application/json"},
-            "body": json.dumps({"upload_url": presigned_url})
-        }
+        return respond(200, {"upload_url": upload_url})
 
-    except Exception as e:
-        print("Error generating presigned URL:", str(e))
-        return {
-            "statusCode": 500,
-            "body": json.dumps({"error": "Could not generate presigned URL"})
-        }
+    elif path == "/download":
+        filename = query_params.get("filename")
+        if not filename:
+            return respond(400, "Missing 'filename' query parameter")
+
+        download_url = s3_client.generate_presigned_url(
+            "get_object",
+            Params={"Bucket": BUCKET_NAME, "Key": filename},
+            ExpiresIn=3600,
+        )
+        return respond(200, {"download_url": download_url})
+
+    else:
+        return respond(404, "Route not found")
+
+
+def respond(status_code, body):
+    return {
+        "statusCode": status_code,
+        "headers": {"Content-Type": "application/json"},
+        "body": json.dumps(body),
+    }

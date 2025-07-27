@@ -23,6 +23,11 @@ resource "aws_apigatewayv2_route" "generate_upload_url" {
   target    = "integrations/${aws_apigatewayv2_integration.lambda_integration.id}"
 }
 
+resource "aws_apigatewayv2_route" "download" {
+  api_id    = aws_apigatewayv2_api.http_api.id
+  route_key = "GET /download"
+  target    = "integrations/${aws_apigatewayv2_integration.lambda_integration.id}"
+}
 
 # Deploy the API on default stage (Live version of the API) in order to expose routes to the internet
 # dev stage and prod stage options later
