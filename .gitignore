@@ -1,0 +1,48 @@
+# === Terraform ===
+.terraform/
+*.tfstate
+*.tfstate.backup
+.terraform.lock.hcl
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraform.tfvars
+terraform.tfvars
+
+# === Python (for Lambda) ===
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg
+*.egg-info/
+dist/
+build/
+env/
+venv/
+.Python
+pip-log.txt
+
+# === Lambda deployment artifacts ===
+*.zip
+
+# === AWS credentials (if accidentally stored locally) ===
+*.pem
+*.key
+*.crt
+*.env
+.env.*
+
+# === IDEs ===
+.vscode/
+.idea/
+*.swp
+*.swo
+*.bak
+
+# === macOS/Linux ===
+.DS_Store
+Thumbs.db
+.cache/
