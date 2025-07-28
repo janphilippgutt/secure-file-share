@@ -17,3 +17,7 @@ variable "lambda_integration_uri" {
   description = "Lambda function's integration uri"
   type = string
 }
+
+variable "cognito_user_pool_id" {}
+variable "cognito_user_pool_client_id" {}
+variable "aws_region" {}

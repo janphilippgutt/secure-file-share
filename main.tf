@@ -11,7 +11,7 @@ terraform {
   }
 }
 provider "aws" {
-  region = var.region
+  region = var.aws_region
 }
 
 module "s3_bucket" {
@@ -55,4 +55,12 @@ module "api_gateway" {
   lambda_function_name  = module.lambda_function.lambda_function_name
   lambda_invoke_arn = module.lambda_function.lambda_invoke_arn
   lambda_integration_uri = module.lambda_function.lambda_integration_uri
+
+  cognito_user_pool_id     = module.auth.user_pool_id
+  cognito_user_pool_client_id = module.auth.user_pool_client_id
+  aws_region               = var.aws_region
+}
+
+module "auth" {
+  source = "./modules/auth"
 }

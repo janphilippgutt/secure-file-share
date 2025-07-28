@@ -11,6 +11,20 @@ resource "aws_apigatewayv2_integration" "lambda_integration" {
   payload_format_version = "2.0"
 }
 
+resource "aws_apigatewayv2_authorizer" "cognito_auth" {
+  api_id          = aws_apigatewayv2_api.http_api.id
+  name            = "CognitoAuthorizer"
+  authorizer_type = "JWT"
+
+  identity_sources = ["$request.header.Authorization"]
+
+  jwt_configuration {
+    audience = [var.cognito_user_pool_client_id]
+    issuer   = "https://cognito-idp.${var.aws_region}.amazonaws.com/${var.cognito_user_pool_id}"
+  }
+}
+
+
 #resource "aws_apigatewayv2_route" "test" {
   #api_id    = aws_apigatewayv2_api.http_api.id
   #route_key = "GET /test"
@@ -21,12 +35,16 @@ resource "aws_apigatewayv2_route" "generate_upload_url" {
   api_id    = aws_apigatewayv2_api.http_api.id
   route_key = "GET /generate-upload-url"
   target    = "integrations/${aws_apigatewayv2_integration.lambda_integration.id}"
+  authorization_type = "JWT"
+  authorizer_id      = aws_apigatewayv2_authorizer.cognito_auth.id
 }
 
 resource "aws_apigatewayv2_route" "download" {
   api_id    = aws_apigatewayv2_api.http_api.id
   route_key = "GET /download"
   target    = "integrations/${aws_apigatewayv2_integration.lambda_integration.id}"
+  authorization_type = "JWT"
+  authorizer_id      = aws_apigatewayv2_authorizer.cognito_auth.id
 }
 
 # Deploy the API on default stage (Live version of the API) in order to expose routes to the internet

@@ -21,3 +21,7 @@ output "lambda_invoke_arn" {
 output "lambda_integration_uri" {
   value = module.lambda_function.lambda_integration_uri
 }
+
+output "user_pool_client_id" {
+  value = module.auth.user_pool_client_id
+}
