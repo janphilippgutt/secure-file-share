@@ -4,6 +4,16 @@ import os
 
 s3_client = boto3.client('s3')
 BUCKET_NAME = os.environ.get('BUCKET_NAME')
+MAX_BUCKET_USAGE = 4.5 * 1024 * 1024 * 1024  # 4.5 GB out of 5GB Free Tier
+
+def get_bucket_size(bucket_name):
+    total_size = 0
+    paginator = s3_client.get_paginator("list_objects_v2")
+    for page in paginator.paginate(Bucket=bucket_name):
+        for obj in page.get("Contents", []):
+            total_size += obj["Size"]
+    return total_size
+
 
 # Providing a Lambda entry point
 # Arguments:
@@ -16,8 +26,13 @@ def lambda_handler(event, context):
 
     if path in ["/upload", "/generate-upload-url"]:
         filename = query_params.get("filename")
+        file_size = int(query_params.get("size", "0"))  # Expect file size in bytes
+
         if not filename:
             return respond(400, "Missing 'filename' query parameter")
+
+        if get_bucket_size(BUCKET_NAME) + file_size > MAX_BUCKET_USAGE:
+            return respond(403, "Bucket storage limit reached")
 
         upload_url = s3_client.generate_presigned_url(
             "put_object",
