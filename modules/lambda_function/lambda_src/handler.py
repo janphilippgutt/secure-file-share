@@ -1,7 +1,6 @@
 import json
 import boto3
 import os
-import urllib.parse
 
 s3_client = boto3.client('s3')
 BUCKET_NAME = os.environ.get('BUCKET_NAME')
@@ -15,7 +14,7 @@ def lambda_handler(event, context):
     path = event.get("rawPath")
     query_params = event.get("queryStringParameters") or {}
 
-    if path == "/upload":
+    if path in ["/upload", "/generate-upload-url"]:
         filename = query_params.get("filename")
         if not filename:
             return respond(400, "Missing 'filename' query parameter")
@@ -39,9 +38,19 @@ def lambda_handler(event, context):
         )
         return respond(200, {"download_url": download_url})
 
+    elif path == "/list":
+        return handle_list_files()
+
     else:
         return respond(404, "Route not found")
 
+def handle_list_files():
+    try:
+        response = s3_client.list_objects_v2(Bucket=BUCKET_NAME)
+        files = [item["Key"] for item in response.get("Contents", [])]
+        return respond(200, {"files": files})
+    except Exception as e:
+        return respond(500, {"error": str(e)})
 
 def respond(status_code, body):
     return {
