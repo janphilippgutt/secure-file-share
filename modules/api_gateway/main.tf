@@ -55,6 +55,14 @@ resource "aws_apigatewayv2_route" "list" {
   authorizer_id      = aws_apigatewayv2_authorizer.cognito_auth.id
 }
 
+resource "aws_apigatewayv2_route" "delete_file" {
+  api_id    = aws_apigatewayv2_api.http_api.id
+  route_key = "DELETE /delete"
+  target    = "integrations/${aws_apigatewayv2_integration.lambda_integration.id}"
+  authorization_type = "JWT"
+  authorizer_id      = aws_apigatewayv2_authorizer.cognito_auth.id
+}
+
 
 # Deploy the API on default stage (Live version of the API) in order to expose routes to the internet
 # dev stage and prod stage options later

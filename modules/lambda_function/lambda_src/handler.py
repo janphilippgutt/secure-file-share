@@ -41,6 +41,18 @@ def lambda_handler(event, context):
     elif path == "/list":
         return handle_list_files()
 
+    elif path == "/delete":
+        filename = query_params.get("filename")
+        if not filename:
+            return respond(400, "Missing 'filename' query parameter")
+
+        try:
+            s3_client.delete_object(Bucket=BUCKET_NAME, Key=filename)
+            return respond(200, {"message": f"Deleted {filename}"})
+        except Exception as e:
+            return respond(500, {"error": str(e)})
+
+
     else:
         return respond(404, "Route not found")
 
