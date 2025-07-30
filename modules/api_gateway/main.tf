@@ -1,6 +1,12 @@
 resource "aws_apigatewayv2_api" "http_api" {
   name          = var.api_name
   protocol_type = "HTTP"
+
+  cors_configuration {
+    allow_origins = ["http://localhost:63342"]
+    allow_methods = ["GET", "POST", "PUT", "DELETE"]        # adjust as needed
+    allow_headers = ["authorization", "content-type"]
+  }
 }
 
 resource "aws_apigatewayv2_integration" "lambda_integration" {

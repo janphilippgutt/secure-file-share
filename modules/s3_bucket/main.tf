@@ -4,6 +4,19 @@ resource "aws_s3_bucket" "secure_bucket" {
   tags = var.tags
 }
 
+resource "aws_s3_bucket_cors_configuration" "bucket_cors" {
+  bucket = aws_s3_bucket.secure_bucket.id
+
+  cors_rule {
+    allowed_headers = ["*"]
+    allowed_methods = ["GET", "PUT", "POST", "HEAD"]
+    allowed_origins = ["http://localhost:63342"]  # your frontend URL here
+    expose_headers  = ["ETag"]
+    max_age_seconds = 3000
+  }
+}
+
+
 resource "aws_s3_bucket_versioning" "versioning" {
   bucket = aws_s3_bucket.secure_bucket.id
 

@@ -56,7 +56,7 @@ def lambda_handler(event, context):
     elif path == "/list":
         return handle_list_files()
 
-    elif path == "/delete":
+    elif path == "/delete" and event["requestContext"]["http"]["method"] == "DELETE":
         filename = query_params.get("filename")
         if not filename:
             return respond(400, "Missing 'filename' query parameter")
@@ -82,6 +82,11 @@ def handle_list_files():
 def respond(status_code, body):
     return {
         "statusCode": status_code,
-        "headers": {"Content-Type": "application/json"},
+        "headers": {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "http://localhost:63342",
+            "Access-Control-Allow-Headers": "Content-Type,Authorization",
+            "Access-Control-Allow-Methods": "GET,OPTIONS,PUT,DELETE"
+        },
         "body": json.dumps(body),
     }
