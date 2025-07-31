@@ -6,6 +6,10 @@ For usability out of the box, a **lightweight HTML/JavaScript frontend** is incl
 
 ---
 
+## Infrastructure Diagram
+
+<img width="652" height="736" alt="Image" src="https://github.com/user-attachments/assets/1361ed98-bab4-4e15-8bcf-bc357416eb44" />
+
 ## Features
 
 - **User Authentication:** Uses AWS Cognito User Pool with JWT tokens to authenticate users.
