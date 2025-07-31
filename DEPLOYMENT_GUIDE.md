@@ -81,7 +81,7 @@ Run ```terraform apply```
 2. Login with your Cognito credentials.
 3. Upload, list, download, or delete files securely.
 
-
+<img width="591" height="341" alt="Image" src="https://github.com/user-attachments/assets/e5c562a3-07d7-486f-bfa3-ce4f719b954f" />
 
 ### Optional Enhancements
 
