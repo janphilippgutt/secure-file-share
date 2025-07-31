@@ -3,8 +3,8 @@ resource "aws_apigatewayv2_api" "http_api" {
   protocol_type = "HTTP"
 
   cors_configuration {
-    allow_origins = ["http://localhost:63342"]
-    allow_methods = ["GET", "POST", "PUT", "DELETE"]        # adjust as needed
+    allow_origins = ["http://localhost:63342"]              # Adjust if using a different local port or host
+    allow_methods = ["GET", "POST", "PUT", "DELETE"]        # Match the API actions you use
     allow_headers = ["authorization", "content-type"]
   }
 }
@@ -29,7 +29,6 @@ resource "aws_apigatewayv2_authorizer" "cognito_auth" {
     issuer   = "https://cognito-idp.${var.aws_region}.amazonaws.com/${var.cognito_user_pool_id}"
   }
 }
-
 
 #resource "aws_apigatewayv2_route" "test" {
   #api_id    = aws_apigatewayv2_api.http_api.id
