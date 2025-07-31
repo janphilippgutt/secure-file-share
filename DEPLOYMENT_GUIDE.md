@@ -34,7 +34,26 @@ And for the functions in the same script.js:
 const backendUrl = '<your_api_endpoint>';
 
 ```
+### Localhost CORS Configuration
 
+During development, the S3 bucket’s CORS settings must allow requests from your local environment. This enables file uploads/downloads to work correctly when testing in the browser (e.g. via localhost).
+Default (development) configuration in Terraform:
+
+```
+cors_configuration {
+  allow_origins = ["http://localhost:63342"]         # Adjust if using a different local port or host
+  allow_methods = ["GET", "POST", "PUT", "DELETE"]   # Match the API actions you use
+  allow_headers = ["authorization", "content-type"]
+}
+```
+
+Notes:
+
+    Update allow_origins to match your actual local environment URL (e.g. http://127.0.0.1:5500 or http://localhost:3000).
+
+    This setting is useful for local development only.
+
+    For production, replace or restrict the allowed origins to your deployed frontend’s domain.
 
 ### Lambda Deployment
 
