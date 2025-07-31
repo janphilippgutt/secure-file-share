@@ -50,8 +50,3 @@ pip-log.txt
 .DS_Store
 Thumbs.db
 .cache/
-
-
-# === Ignore frontend files ===
-index.html
-script.js

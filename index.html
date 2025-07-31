@@ -1,0 +1,38 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Secure File Share</title>
+
+  <!-- Cognito SDK script tag referencing the official CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/amazon-cognito-identity-js@6.2.0/dist/amazon-cognito-identity.min.js"></script>
+
+</head>
+<body>
+  <h1>Secure File Share</h1>
+
+  <div>
+    <input type="text" id="username" placeholder="Username" />
+    <input type="password" id="password" placeholder="Password" />
+    <button onclick="login()">Login</button>
+  </div>
+
+  <div id="uploadSection" style="display: none;">
+    <h2>Upload</h2>
+    <input type="file" id="fileInput" />
+    <button onclick="uploadFile()">Upload File</button>
+    <div id="uploadStatus"></div>
+  </div>
+
+  <div id="listSection" style="display:block; margin-top: 20px;">
+    <button onclick="listFiles()">List Files</button>
+    <p id="listStatus"></p>
+    <ul id="fileList"></ul>
+  </div>
+
+
+  <script src="script.js"></script>
+</body>
+</html>
