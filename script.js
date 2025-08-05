@@ -5,11 +5,11 @@
 // Terraform output values BEFORE using this script.
 // =======================================================
 
-const ApiGatewayUrl = "<YOUR_API_GATEWAY_URL_HERE>" // REPLACE with your api url from outputs
+const ApiGatewayUrl = "<...>" // REPLACE with your api url from outputs
 
 const poolData = {
-  UserPoolId: '<YOUR_USER_POOL_ID_HERE>', // REPLACE with your user_pool_id from outputs
-  ClientId: '<YOUR_USER_POOL_CLIENT_ID_HERE>' // REPLACE with your user_pool_client_id from outputs
+  UserPoolId: '<...>', // REPLACE with your user_pool_id from outputs
+  ClientId: '<...>' // REPLACE with your user_pool_client_id from outputs
 };
 
 const userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
@@ -266,10 +266,19 @@ if (!sessionStorage.getItem("idToken")) {
 
 // Logout
 function logout() {
-  sessionStorage.clear(); // As soon as you store more session-related data other than tokens, remove them individually with sessionStorage.removeItem("idToken");
+  const cognitoUser = userPool.getCurrentUser();
+  if (cognitoUser) {
+    cognitoUser.signOut(); // logs out of Cognito session
+  }
+
+  // Clear tokens from storage
+  sessionStorage.clear();
+
+  // Hide authenticated section
   document.getElementById("uploadSection").style.display = "none";
   alert("Logged out.");
 }
+
 
 window.onload = function () {
   checkSession();
