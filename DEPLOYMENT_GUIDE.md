@@ -1,7 +1,40 @@
 
-## Deployment Guide
+# Deployment Guide
 
 This guide covers additional deployment and configuration details for the Secure File Share project.
+
+## **Quick Deployment**
+
+The fastest way to deploy this project is by using the automated deployment script:
+
+```commandline
+chmod +x deploy.sh      # (only needed once to make the script executable)
+./deploy.sh             # runs the full deployment
+```
+
+This will:
+
+    Zip the Lambda code
+
+    Deploy all infrastructure using Terraform
+
+    Extract required output values
+
+    Automatically generate the config.json file used by the frontend
+
+### Running the Frontend
+
+1. Create a test user in Cognito with username and password.
+2. Open `index.html` in a browser.
+2. Login with your Cognito credentials.
+3. Upload, list, download, or delete files securely.
+
+<img width="591" height="341" alt="Image" src="https://github.com/user-attachments/assets/e5c562a3-07d7-486f-bfa3-ce4f719b954f" />
+
+
+## **Manual Deployment** (optional)
+
+If you want to understand the underlying steps or need to deploy manually for troubleshooting, follow the instructions below.
 
 ### Terraform Outputs
 
@@ -83,10 +116,3 @@ Run ```terraform apply```
 
 <img width="591" height="341" alt="Image" src="https://github.com/user-attachments/assets/e5c562a3-07d7-486f-bfa3-ce4f719b954f" />
 
-### Optional Enhancements
-
-    Automate Lambda deployment within Terraform.
-
-    Use environment variables or secrets management to inject sensitive info during build.
-
-    Extend the backend for additional use-case related functionality. 
