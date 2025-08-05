@@ -32,9 +32,10 @@ function login() {
 
   const cognitoUser = new AmazonCognitoIdentity.CognitoUser(userData);
 
+  // Send login request to AWS Cognito, try log the user in using the provided data (username + password)
   cognitoUser.authenticateUser(authenticationDetails, {
     onSuccess: function (result) {
-      const accessToken = result.getAccessToken().getJwtToken();
+      const accessToken = result.getAccessToken().getJwtToken(); // Extract the actual token from Cognito's response
       const idToken = result.getIdToken().getJwtToken();
 
       console.log("Access Token:", accessToken);
@@ -42,14 +43,14 @@ function login() {
 
       alert("Login successful!");
 
-      // Store token globally or in localStorage for future requests
-      window.accessToken = accessToken;
-      window.idToken = idToken;
+      // Save tokens to the browsers sessionStorage (values are stored globally in the browser's memory, but only for the current tab/window)
+      sessionStorage.setItem("accessToken", accessToken);
+      sessionStorage.setItem("idToken", idToken);
 
-      console.log("Sending token:", window.idToken);
+      console.log("Sending token:", idToken);
 
 
-      // Show upload section
+      // Make upload interface visible
       document.getElementById("uploadSection").style.display = "block";
     },
 
@@ -71,7 +72,9 @@ async function uploadFile() {
 
   const filename = encodeURIComponent(file.name);
   const backendUrl = `${ApiGatewayUrl}/generate-upload-url?filename=${filename}`;
-  const token = window.idToken;
+  // Avoid reusing the same variable name in different scopes by naming retrieved idToken "token" (not "idToken" again)
+  const token = sessionStorage.getItem("idToken");
+
   try {
     const res = await fetch(backendUrl, {
       method: "GET",
@@ -105,12 +108,17 @@ async function uploadFile() {
 
 async function listFiles() {
   const listUrl = `${ApiGatewayUrl}/list`;
+  const token = sessionStorage.getItem("idToken");
+  if (!token) {
+  alert("You are not logged in.");
+  return;
+}
 
   try {
     const res = await fetch(listUrl, {
       method: "GET",
       headers: {
-        Authorization: window.idToken, // ✅ ID token from login
+        Authorization: token, // ✅ ID token from login
       },
     });
 
@@ -156,7 +164,11 @@ async function listFiles() {
 
 async function downloadFile(filename) {
   const backendUrl = `${ApiGatewayUrl}/download?filename=${encodeURIComponent(filename)}`;
-  const token = window.idToken;
+  const token = sessionStorage.getItem("idToken");
+  if (!token) {
+  alert("You are not logged in.");
+  return;
+}
 
   try {
     const res = await fetch(backendUrl, {
@@ -183,6 +195,11 @@ async function downloadFile(filename) {
 
 async function deleteFile(filename) {
   const deleteUrl = `${ApiGatewayUrl}/delete?filename=${encodeURIComponent(filename)}`;
+  const token = sessionStorage.getItem("idToken");
+  if (!token) {
+  alert("You are not logged in.");
+  return;
+}
 
   if (!confirm(`Are you sure you want to delete "${filename}"?`)) {
     return; // User cancelled
@@ -192,7 +209,7 @@ async function deleteFile(filename) {
     const res = await fetch(deleteUrl, {
       method: "DELETE", // Use DELETE method
       headers: {
-        Authorization: window.idToken,
+        Authorization: token,
       },
     });
 
@@ -210,4 +227,16 @@ async function deleteFile(filename) {
     console.error("Delete error:", err);
     alert(`❌ Delete failed: ${err.message}`);
   }
+}
+
+// Hide the upload section if the user is not logged in
+if (!sessionStorage.getItem("idToken")) {
+  document.getElementById("uploadSection").style.display = "none";
+}
+
+// Logout
+function logout() {
+  sessionStorage.clear(); // As soon as you store more session-related data other than tokens, remove them individually with sessionStorage.removeItem("idToken");
+  document.getElementById("uploadSection").style.display = "none";
+  alert("Logged out.");
 }
