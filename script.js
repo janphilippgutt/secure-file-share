@@ -281,6 +281,7 @@ function logout() {
   // Hide authenticated section
   document.getElementById("uploadSection").style.display = "none";
   alert("Logged out.");
+  window.location.reload();
 }
 
 
