@@ -14,6 +14,36 @@ const poolData = {
 
 const userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
 
+function checkSession() {
+  const cognitoUser = userPool.getCurrentUser();
+
+  if (!cognitoUser) {
+    console.log("No existing user session.");
+    return;
+  }
+
+  cognitoUser.getSession(function(err, session) {
+    if (err) {
+      console.error("Session error:", err);
+      return;
+    }
+
+    if (session.isValid()) {
+      const idToken = session.getIdToken().getJwtToken();
+      const accessToken = session.getAccessToken().getJwtToken();
+
+      sessionStorage.setItem("idToken", idToken);
+      sessionStorage.setItem("accessToken", accessToken);
+
+      console.log("Session restored and tokens refreshed.");
+      document.getElementById("uploadSection").style.display = "block";
+    } else {
+      console.log("Session is invalid or expired.");
+    }
+  });
+}
+
+
 function login() {
   const username = document.getElementById("username").value;
   const password = document.getElementById("password").value;
@@ -240,3 +270,7 @@ function logout() {
   document.getElementById("uploadSection").style.display = "none";
   alert("Logged out.");
 }
+
+window.onload = function () {
+  checkSession();
+};
