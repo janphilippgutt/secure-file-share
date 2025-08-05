@@ -14,6 +14,8 @@ terraform.tfvars
 # Generated Terraform output
 output.json
 
+# === Config files ===
+config.json
 
 # === Python (for Lambda) ===
 __pycache__/

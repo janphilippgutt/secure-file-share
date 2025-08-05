@@ -1,18 +1,22 @@
+let ApiGatewayUrl = "";
+let poolData = {};
 
-// =======================================================
-// !!! IMPORTANT !!!
-// You MUST replace the placeholders below with your
-// Terraform output values BEFORE using this script.
-// =======================================================
+async function loadConfig() {
+  const res = await fetch("config.json");
+  const config = await res.json();
+  ApiGatewayUrl = config.apiGatewayUrl;
+  poolData = {
+    UserPoolId: config.userPoolId,
+    ClientId: config.userPoolClientId
+  };
 
-const ApiGatewayUrl = "<...>" // REPLACE with your api url from outputs
+  // Initialize Cognito pool
+  userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
+}
 
-const poolData = {
-  UserPoolId: '<...>', // REPLACE with your user_pool_id from outputs
-  ClientId: '<...>' // REPLACE with your user_pool_client_id from outputs
-};
+// Call loadConfig on page load
+window.addEventListener("DOMContentLoaded", loadConfig);
 
-const userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
 
 function checkSession() {
   const cognitoUser = userPool.getCurrentUser();
