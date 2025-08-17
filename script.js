@@ -115,9 +115,6 @@ function login() {
       const accessToken = result.getAccessToken().getJwtToken();
       const idToken = result.getIdToken().getJwtToken();
 
-      console.log("Access Token:", accessToken);
-      console.log("ID Token:", idToken);
-
       alert("Login successful!");
 
       // Save tokens for later use
@@ -163,7 +160,8 @@ async function uploadFile() {
     if (!res.ok) throw new Error(`Failed to get upload URL: ${res.status}`);
 
     const { upload_url } = await res.json();
-    console.log("Presigned upload URL:", upload_url);
+    console.log("Got presigned upload URL (expires soon) for:", file.name);
+
 
     // Upload file directly to S3 using the presigned URL
     const uploadRes = await fetch(upload_url, {
