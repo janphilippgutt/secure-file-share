@@ -19,7 +19,7 @@ resource "aws_cognito_user_pool_client" "no_secret_client" {
   prevent_user_existence_errors = "ENABLED"
 
   # Configure token validity (example: access token lasts 1h)
-  access_token_validity = 60  # minutes
-  id_token_validity     = 60
+  access_token_validity = 24  # hours
+  id_token_validity     = 24
   refresh_token_validity = 30 # days
 }
