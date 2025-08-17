@@ -18,12 +18,8 @@ resource "aws_cognito_user_pool_client" "no_secret_client" {
 
   prevent_user_existence_errors = "ENABLED"
 
-
-  allowed_oauth_flows_user_pool_client = true
-  allowed_oauth_flows                  = ["code", "implicit"]
-  allowed_oauth_scopes                 = ["email", "openid", "profile"]
-  supported_identity_providers         = ["COGNITO"]
+  # Configure token validity (example: access token lasts 1h)
+  access_token_validity = 60  # minutes
+  id_token_validity     = 60
+  refresh_token_validity = 30 # days
 }
-
-
-
