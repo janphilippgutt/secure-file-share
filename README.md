@@ -8,7 +8,7 @@ For usability out of the box, a **lightweight HTML/JavaScript frontend** is incl
 
 ## Infrastructure Diagram
 
-<img width="652" height="736" alt="Image" src="https://github.com/user-attachments/assets/1361ed98-bab4-4e15-8bcf-bc357416eb44" />
+<img width="713" height="758" alt="Image" src="https://github.com/user-attachments/assets/941912a1-e6d1-4aca-8e45-51811c3ad747" />
 
 ## Features
 
@@ -23,7 +23,7 @@ For usability out of the box, a **lightweight HTML/JavaScript frontend** is incl
 
 ## Security Highlights
 
-- **JWT Authentication:** All API requests require a valid Cognito JWT token (ID token) sent in the `Authorization` header.
+- **JWT Authentication:** All API requests require a valid Cognito JWT token (access token) sent in the `Authorization` header.
 - **Pre-signed URLs:** Upload and download URLs are short-lived and scoped to specific files, preventing unauthorized access.
 - **Storage Quota Enforcement:** The backend checks total S3 usage before allowing new uploads, avoiding denial-of-service risks.
 - **CORS Restrictions:** Only requests from authorized frontend origins are accepted, protecting against cross-site attacks.
@@ -34,15 +34,15 @@ For usability out of the box, a **lightweight HTML/JavaScript frontend** is incl
 
 This project can serve as the backend of a secure Client File Portal for small agencies, consultancies, or service providers (e.g., design firms, legal advisors, or freelancers).
 
-In this scenario:
+**In this scenario:**
 
-    Clients log in using credentials managed via AWS Cognito.
+Clients log in using credentials managed via AWS Cognito.
 
-    They can upload deliverables, view their document history, and download or delete files — all scoped securely to authenticated users.
+They can upload deliverables, view their document history, and download or delete files — all scoped securely to authenticated users.
 
-    All file actions are handled via a secure API Gateway + Lambda architecture, with files stored in an S3 bucket.
+All file actions are handled via a secure API Gateway + Lambda architecture, with files stored in an S3 bucket.
 
-    Access is restricted to authenticated sessions, ensuring unauthorized users cannot access any endpoints or data.
+Access is restricted to authenticated sessions, ensuring unauthorized users cannot access any endpoints or data.
 
 ---
 
@@ -57,9 +57,9 @@ This modular infrastructure makes the backend easy to extend with role-based acc
 
 Please find a deployment guide in the separate DEPLOYMENT_GUIDE.md.  
 
-## Notes
+## Important Notes
 
-- Extend the backend to include more detailed permissions or logging if needed.
+- This project does not yet include per-user separation. 
 
 - Always protect your AWS credentials and tokens.
 In this project, no sensitive credentials are exposed in the frontend. 
