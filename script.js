@@ -1,325 +1,210 @@
-// =============================================
-// Global variables (values shared across the file)
-// =============================================
+'use strict'; // Prevents accidental global variables
 
-// Will hold the API Gateway base URL, loaded from config.json
-let ApiGatewayUrl = "";
+// Global vars, initialized later when config.json is loaded
+let ApiGatewayUrl = '';
+let userPool = null;
 
-// Will hold information about the Cognito user pool
-let poolData = {};
-
-// Will hold the Cognito User Pool object (we initialize it later)
-let userPool;
-
-
-// =============================================
-// Load configuration from config.json
-// =============================================
+// Load config.json (written by deploy.sh) when the page loads
 async function loadConfig() {
-  // Fetch config.json (located in the same directory as index.html)
-  const res = await fetch("config.json");
+  try {
+    // Fetch config.json fresh every time (avoid caching issues)
+    const response = await fetch('config.json', { cache: 'no-store' });
+    if (!response.ok) throw new Error('Could not load config.json');
+    const config = await response.json();
 
-  // Parse the response body into a JavaScript object
-  const config = await res.json();
+    // Save API URL for later fetch() calls
+    ApiGatewayUrl = config.apiGatewayUrl;
 
-  // Save values globally for later use
-  ApiGatewayUrl = config.apiGatewayUrl;
-  poolData = {
-    UserPoolId: config.userPoolId,
-    ClientId: config.userPoolClientId,
-  };
+    // Configure Cognito User Pool
+    const poolData = {
+      UserPoolId: config.userPoolId,
+      ClientId: config.userPoolClientId
+    };
+    userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
 
-  // Initialize Cognito User Pool
-  userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
-
-  // After config is loaded and userPool exists, check if a user session already exists
-  checkSession();
-}
-
-// Run loadConfig once the HTML page has finished loading
-window.addEventListener("DOMContentLoaded", loadConfig);
-
-
-// =============================================
-// Helper function: get the access token from storage
-// =============================================
-function getAuthToken() {
-  return sessionStorage.getItem("accessToken");
-}
-
-
-// =============================================
-// Check if the user already has a valid session
-// =============================================
-function checkSession() {
-  // Get the "current user" object from Cognito (if they previously logged in)
-  const cognitoUser = userPool.getCurrentUser();
-
-  if (!cognitoUser) {
-    console.log("No existing user session.");
-    return;
+    // Check if user has an existing session (auto-login after refresh)
+    checkSession();
+  } catch (err) {
+    console.error('Error loading config:', err);
   }
+}
+window.addEventListener('DOMContentLoaded', loadConfig); // Run above on page load
 
-  // Try to refresh the session
-  cognitoUser.getSession(function (err, session) {
-    if (err) {
-      console.error("Session error:", err);
-      return;
-    }
+// --- Utility: Refresh tokens if expired ---
+async function ensureSession() {
+  if (!userPool) throw new Error('Config not loaded yet');
+  const cu = userPool.getCurrentUser();
+  if (!cu) throw new Error('No user logged in');
 
-    if (session.isValid()) {
-      // Extract tokens from the session
-      const idToken = session.getIdToken().getJwtToken();
-      const accessToken = session.getAccessToken().getJwtToken();
-
-      // Save tokens into browser storage
-      sessionStorage.setItem("idToken", idToken);       // identity info
-      sessionStorage.setItem("accessToken", accessToken); // used for API calls
-
-      console.log("Session restored and tokens refreshed.");
-
-      // Show upload section (user is authenticated)
-      document.getElementById("uploadSection").style.display = "block";
-    } else {
-      console.log("Session is invalid or expired.");
-    }
+  return new Promise((resolve, reject) => {
+    cu.getSession((err, session) => {
+      if (err || !session?.isValid()) {
+        reject(err || new Error('Invalid session'));
+      } else {
+        // Store fresh tokens in localStorage for persistence across tabs
+        localStorage.setItem('accessToken', session.getAccessToken().getJwtToken());
+        localStorage.setItem('idToken', session.getIdToken().getJwtToken());
+        resolve();
+      }
+    });
   });
 }
 
+// --- Utility: Create Authorization header with Bearer token ---
+async function authHeader() {
+  await ensureSession(); // Make sure we’re using a valid session
+  const token = localStorage.getItem('accessToken'); // Always use accessToken for APIs
+  return { Authorization: `Bearer ${token}` };
+}
 
-// =============================================
-// Login with username + password
-// =============================================
+// --- Login logic ---
 function login() {
-  // Read username + password from form input fields
-  const username = document.getElementById("username").value;
-  const password = document.getElementById("password").value;
+  const username = document.getElementById('username').value;
+  const password = document.getElementById('password').value;
 
-  // Prepare login details for Cognito
   const authenticationDetails = new AmazonCognitoIdentity.AuthenticationDetails({
     Username: username,
     Password: password,
   });
 
-  // Prepare Cognito user object
   const userData = {
     Username: username,
     Pool: userPool,
   };
   const cognitoUser = new AmazonCognitoIdentity.CognitoUser(userData);
 
-  // Try to log in
   cognitoUser.authenticateUser(authenticationDetails, {
-    onSuccess: function (result) {
-      // Extract tokens on success
-      const accessToken = result.getAccessToken().getJwtToken();
-      const idToken = result.getIdToken().getJwtToken();
+    onSuccess: (result) => {
+      // Store tokens in localStorage for persistence across tabs
+      localStorage.setItem('accessToken', result.getAccessToken().getJwtToken());
+      localStorage.setItem('idToken', result.getIdToken().getJwtToken());
 
-      alert("Login successful!");
-
-      // Save tokens for later use
-      sessionStorage.setItem("accessToken", accessToken);
-      sessionStorage.setItem("idToken", idToken);
-
-      // Show upload section now that user is logged in
-      document.getElementById("uploadSection").style.display = "block";
+      // Show upload section after successful login
+      document.getElementById('uploadSection').style.display = 'block';
+      alert('Login successful!');
     },
-
-    onFailure: function (err) {
-      console.error(err);
-      alert("Login failed: " + err.message);
+    onFailure: (err) => {
+      alert('Login failed: ' + err.message);
     },
   });
 }
 
+// --- Check if user already logged in ---
+function checkSession() {
+  const cu = userPool.getCurrentUser();
+  if (!cu) return; // Not logged in
 
-// =============================================
-// Upload a file
-// =============================================
-async function uploadFile() {
-  const fileInput = document.getElementById("fileInput");
-  const file = fileInput.files[0]; // first selected file
-
-  if (!file) {
-    alert("Please select a file to upload.");
-    return;
-  }
-
-  const filename = encodeURIComponent(file.name); // make filename URL-safe
-  const backendUrl = `${ApiGatewayUrl}/generate-upload-url?filename=${filename}`;
-
-  const token = getAuthToken(); // <-- use access token
-
-  try {
-    // Ask backend for a presigned S3 upload URL
-    const res = await fetch(backendUrl, {
-      method: "GET",
-      headers: { Authorization: token },
-    });
-
-    if (!res.ok) throw new Error(`Failed to get upload URL: ${res.status}`);
-
-    const { upload_url } = await res.json();
-    console.log("Got presigned upload URL (expires soon) for:", file.name);
-
-
-    // Upload file directly to S3 using the presigned URL
-    const uploadRes = await fetch(upload_url, {
-      method: "PUT",
-      body: file,
-    });
-
-    if (!uploadRes.ok) throw new Error(`Upload failed: ${uploadRes.status}`);
-
-    document.getElementById("uploadStatus").innerText = "✅ Upload successful!";
-  } catch (err) {
-    console.error("Upload error:", err);
-    document.getElementById("uploadStatus").innerText = `❌ Upload failed: ${err.message}`;
-  }
+  cu.getSession((err, session) => {
+    if (err || !session?.isValid()) return;
+    // Session still valid → restore UI
+    localStorage.setItem('accessToken', session.getAccessToken().getJwtToken());
+    localStorage.setItem('idToken', session.getIdToken().getJwtToken());
+    document.getElementById('uploadSection').style.display = 'block';
+  });
 }
 
-
-// =============================================
-// List all files
-// =============================================
-async function listFiles() {
-  const listUrl = `${ApiGatewayUrl}/list`;
-  const token = getAuthToken();
-
-  if (!token) {
-    alert("You are not logged in.");
-    return;
-  }
-
-  try {
-    // Call backend list endpoint
-    const res = await fetch(listUrl, {
-      method: "GET",
-      headers: { Authorization: token },
-    });
-
-    if (!res.ok) throw new Error(`List failed: ${res.status}`);
-
-    const { files } = await res.json();
-    const fileListElem = document.getElementById("fileList");
-    fileListElem.innerHTML = ""; // clear previous list
-
-    // For each file, create <li> with Download + Delete buttons
-    files.forEach((filename) => {
-      const item = document.createElement("li");
-
-      const nameSpan = document.createElement("span");
-      nameSpan.textContent = filename;
-      item.appendChild(nameSpan);
-
-      const downloadBtn = document.createElement("button");
-      downloadBtn.textContent = "Download";
-      downloadBtn.style.marginLeft = "10px";
-      downloadBtn.onclick = () => downloadFile(filename);
-      item.appendChild(downloadBtn);
-
-      const deleteBtn = document.createElement("button");
-      deleteBtn.textContent = "Delete";
-      deleteBtn.style.marginLeft = "10px";
-      deleteBtn.onclick = () => deleteFile(filename);
-      item.appendChild(deleteBtn);
-
-      fileListElem.appendChild(item);
-    });
-
-    document.getElementById("listStatus").innerText = "✅ Files listed successfully.";
-  } catch (err) {
-    console.error("List error:", err);
-    document.getElementById("listStatus").innerText = `❌ List failed: ${err.message}`;
-  }
-}
-
-
-// =============================================
-// Download a file
-// =============================================
-async function downloadFile(filename) {
-  const backendUrl = `${ApiGatewayUrl}/download?filename=${encodeURIComponent(filename)}`;
-  const token = getAuthToken();
-
-  if (!token) {
-    alert("You are not logged in.");
-    return;
-  }
-
-  try {
-    // Ask backend for a presigned download URL
-    const res = await fetch(backendUrl, {
-      method: "GET",
-      headers: { Authorization: token },
-    });
-
-    if (!res.ok) throw new Error(`Failed to get download URL: ${res.status}`);
-
-    const { download_url } = await res.json();
-    console.log("Download URL:", download_url);
-
-    // Open download in a new browser tab
-    window.open(download_url, "_blank");
-  } catch (err) {
-    console.error("Download error:", err);
-    alert(`❌ Download failed: ${err.message}`);
-  }
-}
-
-
-// =============================================
-// Delete a file
-// =============================================
-async function deleteFile(filename) {
-  const deleteUrl = `${ApiGatewayUrl}/delete?filename=${encodeURIComponent(filename)}`;
-  const token = getAuthToken();
-
-  if (!token) {
-    alert("You are not logged in.");
-    return;
-  }
-
-  if (!confirm(`Are you sure you want to delete "${filename}"?`)) {
-    return; // user clicked "Cancel"
-  }
-
-  try {
-    // Call backend delete endpoint
-    const res = await fetch(deleteUrl, {
-      method: "DELETE",
-      headers: { Authorization: token },
-    });
-
-    if (!res.ok) throw new Error(`Delete failed: ${res.status}`);
-
-    const result = await res.json();
-    console.log("Delete result:", result);
-    alert(`✅ ${filename} deleted successfully.`);
-
-    // Refresh list
-    await listFiles();
-  } catch (err) {
-    console.error("Delete error:", err);
-    alert(`❌ Delete failed: ${err.message}`);
-  }
-}
-
-
-// =============================================
-// Logout
-// =============================================
+// --- Logout ---
 function logout() {
-  const cognitoUser = userPool.getCurrentUser();
-  if (cognitoUser) {
-    cognitoUser.signOut(); // logs out of Cognito session
+  const cu = userPool?.getCurrentUser();
+  if (cu) cu.signOut();
+  localStorage.clear(); // Remove tokens from browser
+  document.getElementById('uploadSection').style.display = 'none';
+  location.reload(); // Refresh page so cached data disappears
+}
+
+// --- Upload file ---
+async function uploadFile() {
+  try {
+    await ensureSession();
+    const file = document.getElementById('fileInput').files[0];
+    if (!file) return alert('Please select a file first.');
+
+    // Step 1: Ask backend for presigned upload URL
+    const response = await fetch(
+      `${ApiGatewayUrl}/generate-upload-url?filename=${encodeURIComponent(file.name)}`,
+      { method: 'GET', headers: await authHeader() }
+    );
+    if (!response.ok) throw new Error(`Failed to get upload URL: ${response.status}`);
+    const { upload_url } = await response.json();
+
+    // Step 2: Upload file directly to S3 using presigned URL
+    const putResponse = await fetch(upload_url, { method: 'PUT', body: file });
+    if (!putResponse.ok) throw new Error(`Upload failed: ${putResponse.status}`);
+
+    document.getElementById('uploadStatus').innerText = '✅ Upload successful!';
+  } catch (err) {
+    alert('Upload error: ' + err.message);
   }
+}
 
-  // Remove tokens from storage
-  sessionStorage.clear();
+// --- List files ---
+async function listFiles() {
+  try {
+    await ensureSession();
+    const response = await fetch(`${ApiGatewayUrl}/list`, {
+      method: 'GET',
+      headers: await authHeader(),
+    });
+    if (!response.ok) throw new Error(`Failed to list files: ${response.status}`);
+    const data = await response.json();
 
-  // Hide authenticated section
-  document.getElementById("uploadSection").style.display = "none";
-  alert("Logged out.");
-  window.location.reload(); // refresh page to reset UI
+    // Safely extract array of filenames
+    const files = Array.isArray(data) ? data : Array.isArray(data.files) ? data.files : [];
+
+    const fileList = document.getElementById('fileList');
+    fileList.innerHTML = ''; // Clear old list
+
+    if (files.length === 0) {
+      fileList.innerHTML = '<li>No files found.</li>';
+      return;
+    }
+
+    files.forEach((filename) => {
+      const li = document.createElement('li');
+      li.innerHTML = `
+        ${filename}
+        <button onclick="downloadFile('${filename}')">Download</button>
+        <button onclick="deleteFile('${filename}')">Delete</button>
+      `;
+      fileList.appendChild(li);
+    });
+  } catch (err) {
+    alert('List error: ' + err.message);
+  }
+}
+
+
+// --- Download file ---
+async function downloadFile(filename) {
+  try {
+    await ensureSession();
+    const response = await fetch(
+      `${ApiGatewayUrl}/download?filename=${encodeURIComponent(filename)}`,
+      { headers: await authHeader() }
+    );
+    if (!response.ok) throw new Error(`Failed to get download URL: ${response.status}`);
+    const { download_url } = await response.json();
+
+    // Open securely (prevent window.opener access)
+    const w = window.open(download_url, '_blank', 'noopener,noreferrer');
+    if (w) w.opener = null;
+  } catch (err) {
+    alert('Download error: ' + err.message);
+  }
+}
+
+// --- Delete file ---
+async function deleteFile(filename) {
+  try {
+    await ensureSession();
+    const response = await fetch(
+      `${ApiGatewayUrl}/delete?filename=${encodeURIComponent(filename)}`,
+      { method: 'DELETE', headers: await authHeader() }
+    );
+    if (!response.ok) throw new Error(`Failed to delete: ${response.status}`);
+    alert('File deleted successfully!');
+    listFiles(); // Refresh list
+  } catch (err) {
+    alert('Delete error: ' + err.message);
+  }
 }
