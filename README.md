@@ -59,7 +59,8 @@ Please find a deployment guide in the separate DEPLOYMENT_GUIDE.md.
 
 ## Important Notes
 
-- This project does not yet include per-user separation. 
+- This project does not yet enforce strict per-user file isolation (to prevent user A from listing/downloading user B’s files). 
+This will be an important additional feature. Suggestion for implementation: Read the user identity from the token claims in the Lambda (e.g., event.requestContext.authorizer.jwt.claims.sub or email) to enforce per-user isolation. 
 
 - Always protect your AWS credentials and tokens.
 In this project, no sensitive credentials are exposed in the frontend. 
