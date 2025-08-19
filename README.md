@@ -17,6 +17,7 @@ For usability out of the box, a **lightweight HTML/JavaScript frontend** is incl
 - **File Management:** Authenticated users can list and delete files in the S3 bucket.
 - **Storage Limit:** Enforces a configurable maximum storage quota to avoid overuse.
 - **CORS and Security Headers:** Proper CORS configuration to enable secure communication from the frontend.
+- **Per-User File Isolation** (to prevent user A from listing/downloading user B’s files).
 - **Minimal Frontend:** Lightweight HTML/JS example to demonstrate login and file operations.
 
 ---
@@ -57,12 +58,9 @@ This modular infrastructure makes the backend easy to extend with role-based acc
 
 Please find a deployment guide in the separate DEPLOYMENT_GUIDE.md.  
 
-## Important Notes
+## Note
 
-- This project does not yet enforce strict per-user file isolation (to prevent user A from listing/downloading user B’s files). 
-This will be an important additional feature. Suggestion for implementation: Read the user identity from the token claims in the Lambda (e.g., event.requestContext.authorizer.jwt.claims.sub or email) to enforce per-user isolation. 
-
-- Always protect your AWS credentials and tokens.
+Always protect your AWS credentials and tokens.
 In this project, no sensitive credentials are exposed in the frontend. 
 However, in a more complex or production-grade application, consider using environment variables (.env) 
 along with a build tool like Webpack or Vite to manage and inject non-sensitive config 
