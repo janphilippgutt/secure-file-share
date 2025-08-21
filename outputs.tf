@@ -29,3 +29,11 @@ output "user_pool_id" {
 output "user_pool_client_id" {
   value = module.auth.user_pool_client_id
 }
+
+output "s3_static_site_bucket_name" {
+  value = module.deploy_frontend.s3_bucket_name
+}
+
+output "cloudfront_domain" {
+  value = module.deploy_frontend.cloudfront_domain
+}
