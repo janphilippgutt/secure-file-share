@@ -2,13 +2,13 @@
 
 A serverless, security-focused file sharing backend that enables **authenticated users** to upload, list, download, and delete files in an S3 bucket via a secure API. 
 It uses **AWS Cognito** for user authentication and **AWS Lambda + API Gateway** for backend operations.
-For usability out of the box, a **lightweight HTML/JavaScript frontend** is included. 
+For usability out of the box, a **lightweight HTML/JavaScript frontend** is included and deployed to Amazon CloudFront for fast, reliable delivery. 
 
 ---
 
 ## Infrastructure Diagram
 
-<img width="713" height="758" alt="Image" src="https://github.com/user-attachments/assets/941912a1-e6d1-4aca-8e45-51811c3ad747" />
+<img width="705" height="783" alt="Image" src="https://github.com/user-attachments/assets/0ece8184-a080-4178-a991-0145155311ca" />
 
 ## Features
 
