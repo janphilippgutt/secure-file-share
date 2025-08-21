@@ -11,7 +11,7 @@ resource "aws_s3_bucket_cors_configuration" "bucket_cors" {
     allowed_headers = ["*"]
     allowed_methods = ["GET", "PUT", "POST", "HEAD"]
     allowed_origins = [
-      var.cloudfront_origin,
+      "https://${var.cloudfront_origin}",
       "http://localhost:63342"
     ] # your frontend URL here
     expose_headers  = ["ETag"]
