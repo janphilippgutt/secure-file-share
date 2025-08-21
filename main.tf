@@ -17,10 +17,11 @@ provider "aws" {
 module "s3_bucket" {
   source = "./modules/s3_bucket"
 
-  bucket_name = "secure-file-share-${random_id.bucket_id.hex}"
+  bucket_name       = "secure-file-share-${random_id.bucket_id.hex}"
+  cloudfront_origin = module.deploy_frontend.cloudfront_domain
   tags = {
     Project = "SecureFileShare"
-    Owner = "JP"
+    Owner   = "JP"
   }
 }
 
@@ -29,38 +30,43 @@ resource "random_id" "bucket_id" {
 }
 
 module "iam_roles" {
-  source = "./modules/iam_roles"
-  role_name = "lambda-secure-share-role"
+  source         = "./modules/iam_roles"
+  role_name      = "lambda-secure-share-role"
   s3_bucket_name = module.s3_bucket.bucket_name # Passing the output from the s3_bucket module into the iam_roles module
   tags = {
     Project = "SecureFileShare"
-    Owner = "JP"
+    Owner   = "JP"
   }
 }
 
 module "lambda_function" {
-  source = "./modules/lambda_function"
-  lambda_name = "file-share-handler"
+  source          = "./modules/lambda_function"
+  lambda_name     = "file-share-handler"
   lambda_role_arn = module.iam_roles.lambda_role_arn
-  s3_bucket_name = module.s3_bucket.bucket_name
+  s3_bucket_name  = module.s3_bucket.bucket_name
   tags = {
     Project = "SecureFileShare"
-    Owner = "JP"
+    Owner   = "JP"
   }
 }
 
 module "api_gateway" {
-  source                = "./modules/api_gateway"
-  api_name              = "secure-file-api"
-  lambda_function_name  = module.lambda_function.lambda_function_name
-  lambda_invoke_arn = module.lambda_function.lambda_invoke_arn
+  source                 = "./modules/api_gateway"
+  api_name               = "secure-file-api"
+  lambda_function_name   = module.lambda_function.lambda_function_name
+  lambda_invoke_arn      = module.lambda_function.lambda_invoke_arn
   lambda_integration_uri = module.lambda_function.lambda_integration_uri
 
-  cognito_user_pool_id     = module.auth.user_pool_id
+  cognito_user_pool_id        = module.auth.user_pool_id
   cognito_user_pool_client_id = module.auth.user_pool_client_id
-  aws_region               = var.aws_region
+  aws_region                  = var.aws_region
+  cloudfront_origin           = module.deploy_frontend.cloudfront_domain
 }
 
 module "auth" {
   source = "./modules/auth"
+}
+
+module "deploy_frontend" {
+  source = "./modules/deploy-frontend"
 }
