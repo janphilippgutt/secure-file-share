@@ -4,6 +4,8 @@ A serverless, security-focused file sharing backend that enables **authenticated
 It uses **AWS Cognito** for user authentication and **AWS Lambda + API Gateway** for backend operations.
 For usability out of the box, a **lightweight HTML/JavaScript frontend** is included and deployed to Amazon CloudFront for fast, reliable delivery. 
 
+A Live-Demo is available (see further down this README)
+
 ---
 
 ## Infrastructure Diagram
@@ -37,13 +39,13 @@ This project can serve as the backend of a secure Client File Portal for small a
 
 **In this scenario:**
 
-Clients log in using credentials managed via AWS Cognito.
+- Clients log in using credentials managed via AWS Cognito.
 
-They can upload deliverables, view their document history, and download or delete files — all scoped securely to authenticated users.
+- They can upload deliverables, view their document history, and download or delete files — all scoped securely to authenticated users.
 
-All file actions are handled via a secure API Gateway + Lambda architecture, with files stored in an S3 bucket.
+- All file actions are handled via a secure API Gateway + Lambda architecture, with files stored in an S3 bucket.
 
-Access is restricted to authenticated sessions, ensuring unauthorized users cannot access any endpoints or data.
+- Access is restricted to authenticated sessions, ensuring unauthorized users cannot access any endpoints or data.
 
 ---
 
@@ -57,6 +59,14 @@ This modular infrastructure makes the backend easy to extend with role-based acc
 ## Deployment
 
 Please find a deployment guide in the separate DEPLOYMENT_GUIDE.md.  
+
+## Live-Demo
+
+Link to Loom Screencast:
+
+<a href="https://www.loom.com/share/0a38a8e8e57447558f84c7c328c1dd7c?sid=4250666e-ae62-4659-b344-f9e427d16ff8">
+    <img src="https://github.com/user-attachments/assets/6d17b7cb-9edd-42d3-9ae4-80862b7eb1cc" width="400" />
+</a>
 
 ## Note
 
