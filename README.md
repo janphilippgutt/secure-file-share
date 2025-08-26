@@ -54,6 +54,26 @@ This project can serve as the backend of a secure Client File Portal for small a
 This project uses **modular Terraform** to provision and manage all AWS resources, including the S3 bucket, API Gateway, Lambda functions, Cognito User Pool, IAM roles, and CORS configurations. Modules are organized by resource type to keep the codebase clean and scalable. This approach supports reproducibility, version control, and easy extension for future improvements or environments. 
 This modular infrastructure makes the backend easy to extend with role-based access control, audit logging, or integrations with external tools such as billing or notification systems.
 
+For the Front-End deployment, this project calls moduls from a repository I maintain separately for reusable moduls:
+
+```
+module "s3_static_site" {
+  source               = "git::https://github.com/janphilippgutt/terraform-aws-modules.git//modules/s3-static-site?ref=main"
+  bucket_name          = "secure-file-share-static-site-demo${random_id.bucket_id}"
+  environment          = "dev"
+  enable_public_access = false
+  use_oac              = true
+  for_cloudfront       = true
+}
+
+module "cloudfront" {
+  source             = "git::https://github.com/janphilippgutt/terraform-aws-modules.git//modules/cloudfront?ref=main"
+  bucket_name        = module.s3_static_site.bucket_id
+  bucket_arn         = module.s3_static_site.bucket_arn
+  bucket_domain_name = module.s3_static_site.bucket_regional_domain_name
+}
+```
+
 ---
 
 ## Deployment
