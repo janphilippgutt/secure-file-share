@@ -49,7 +49,7 @@ This project can serve as the backend of a secure Client File Portal for small a
 
 - Access is restricted to authenticated sessions, ensuring unauthorized users cannot access any endpoints or data.
 
-### B) Document ingestion layer (for AI-powered helpdesk)
+### B) Document Ingestion Layer (for AI-powered helpdesk)
 
 The secure file share service can safely store manuals, guides, FAQs that can later be automatically embedded and indexed for retrieval.
 
