@@ -16,6 +16,7 @@ output.json
 
 # === Config files ===
 config.json
+backend.hcl
 
 # === Python (for Lambda) ===
 __pycache__/
