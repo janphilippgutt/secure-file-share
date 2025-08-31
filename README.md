@@ -33,7 +33,9 @@ A Live-Demo is available (see further down this README)
 
 ---
 
-## Use Case Example: Client File Portal
+## Use Case Examples
+
+### A) Client File Portal
 
 This project can serve as the backend of a secure Client File Portal for small agencies, consultancies, or service providers (e.g., design firms, legal advisors, or freelancers).
 
@@ -46,6 +48,18 @@ This project can serve as the backend of a secure Client File Portal for small a
 - All file actions are handled via a secure API Gateway + Lambda architecture, with files stored in an S3 bucket.
 
 - Access is restricted to authenticated sessions, ensuring unauthorized users cannot access any endpoints or data.
+
+### B) Document ingestion layer (for AI-powered helpdesk)
+
+The secure file share service can safely store manuals, guides, FAQs that can later be automatically embedded and indexed for retrieval.
+
+**In this scenario:**
+
+- Backend ensures access control and data protection through pre-signed URLs
+
+- S3 provides a simple entry point for feeding documents into the RAG pipeline
+
+- New or updated documents become instantly available to the helpdesk without exposing sensitive data
 
 ---
 
