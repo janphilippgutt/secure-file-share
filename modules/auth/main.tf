@@ -1,9 +1,9 @@
 resource "aws_cognito_user_pool" "user_pool" {
-  name = "secure-file-share-user-pool"
+  name = "${var.base_name}-secure-file-share-user-pool"
 }
 
 resource "aws_cognito_user_pool_client" "no_secret_client" {
-  name         = "portfolio-client-no-secret"
+  name         = "${var.base_name}-portfolio-client-no-secret"
   user_pool_id = aws_cognito_user_pool.user_pool.id
 
   # No client secret for frontend/public usage

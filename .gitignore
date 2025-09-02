@@ -10,6 +10,7 @@ override.tf.json
 *_override.tf.json
 .terraform.tfvars
 terraform.tfvars
+tfplan
 
 # Generated Terraform output
 output.json
