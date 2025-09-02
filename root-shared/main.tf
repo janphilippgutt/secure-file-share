@@ -66,8 +66,10 @@ module "api_gateway" {
 
 module "auth" {
   source = "../modules/auth"
+  base_name = ""
 }
 
 module "deploy_frontend" {
   source = "../modules/deploy-frontend"
+  base_name = "shared"
 }
