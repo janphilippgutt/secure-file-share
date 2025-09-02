@@ -1,3 +1,7 @@
+# To initialize backend with a provided backend configuration:
+# Create backend.hcl, then run 'terraform init -backend-configuration=backend.hcl -upgrade'
+
+
 terraform {
   required_providers {
     aws = {
@@ -66,10 +70,10 @@ module "api_gateway" {
 
 module "auth" {
   source = "../modules/auth"
-  base_name = ""
+  base_name = "Shared"
 }
 
 module "deploy_frontend" {
   source = "../modules/deploy-frontend"
-  base_name = "shared"
+  base_name = "Shared"
 }
