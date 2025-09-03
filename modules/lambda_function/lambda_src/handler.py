@@ -44,12 +44,23 @@ def get_bucket_size(bucket_name):
             total_size += obj["Size"]
     return total_size
 
-def respond(status_code, body):
+def respond(status_code, body, event=None):
+    # Default origin for local dev
+    origin = "http://localhost:63342"
+
+    # Override if request includes Origin header
+    try:
+        req_origin = event.get("headers", {}).get("origin")
+        if req_origin:
+            origin = req_origin
+    except Exception:
+        pass
+
     return {
         "statusCode": status_code,
         "headers": {
             "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "http://localhost:63342",
+            "Access-Control-Allow-Origin": origin,
             "Access-Control-Allow-Headers": "Content-Type,Authorization",
             "Access-Control-Allow-Methods": "GET,PUT,DELETE,OPTIONS"
         },
