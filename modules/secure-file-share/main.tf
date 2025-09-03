@@ -59,6 +59,11 @@ module "api_gateway" {
   cognito_user_pool_client_id = module.auth.user_pool_client_id
   aws_region                  = var.aws_region
   cloudfront_origin           = module.deploy_frontend.cloudfront_domain
+
+  allowed_origins = [
+    "https://${module.deploy_frontend.cloudfront_domain}",
+    "http://localhost:63342"
+  ]
 }
 
 module "auth" {

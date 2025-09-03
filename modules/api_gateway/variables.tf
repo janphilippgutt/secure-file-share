@@ -26,3 +26,9 @@ variable "cloudfront_origin" {
   description = "The CloudFront domain to allow in CORS"
   type        = string
 }
+
+# For new instances: optional override for CORS origins
+variable "allowed_origins" {
+  type    = list(string)
+  default = []   # if empty, module will use the cloudfront_origin + localhost fallback
+}

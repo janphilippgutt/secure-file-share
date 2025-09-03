@@ -3,12 +3,14 @@ resource "aws_apigatewayv2_api" "http_api" {
   protocol_type = "HTTP"
 
   cors_configuration {
-    allow_origins = [
+    allow_origins = length(var.allowed_origins) > 0 ? var.allowed_origins : [
       "https://${var.cloudfront_origin}",
       "http://localhost:63342"
-    ]                                                # Adjust if using a different local port or host
-    allow_methods = ["GET", "POST", "PUT", "DELETE"] # Match the API actions you use
-    allow_headers = ["authorization", "content-type"]
+    ]
+    allow_methods = ["OPTIONS", "GET", "POST", "PUT", "DELETE"]
+    allow_headers = ["Authorization", "Content-Type", "X-Amz-Date", "X-Amz-Security-Token", "X-Api-Key"]
+    expose_headers = ["ETag"]
+    max_age        = 3600
   }
 }
 
