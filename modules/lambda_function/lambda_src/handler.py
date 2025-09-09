@@ -47,15 +47,8 @@ def get_bucket_size(bucket_name):
 def respond(status_code, body, event=None):
     # Default origin for local dev
     origin = "http://localhost:63342"
-
-    # Override if request includes Origin header
-    try:
-        req_origin = event.get("headers", {}).get("origin")
-        if req_origin:
-            origin = req_origin
-    except Exception:
-        pass
-
+    if event:
+        origin = event.get("headers", {}).get("origin", origin)
     return {
         "statusCode": status_code,
         "headers": {
@@ -90,7 +83,8 @@ def lambda_handler(event, context):
                 Params={"Bucket": BUCKET_NAME, "Key": s3_key},
                 ExpiresIn=3600,
             )
-            return respond(200, {"upload_url": upload_url})
+
+            return respond(200, {"upload_url": upload_url}, event)
 
         elif path == "/download":
             filename = sanitize_filename(query_params.get("filename", ""))
