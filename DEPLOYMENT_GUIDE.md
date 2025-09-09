@@ -1,111 +1,126 @@
+# 🚀 Secure File Share – Deployment Guide
 
-# Deployment Guide
+This guide explains how to deploy the Secure File Share project using the unified deployment script.
+The project supports two deployment approaches:
 
-This guide covers additional deployment and configuration details for the Secure File Share project.
+**Instance Mode** → creates a self-contained, local-state deployment of Secure File Share.
 
-## **Quick Deployment**
+**Shared Mode** → deploys a shared root stack with a remote backend (S3 + DynamoDB), and can be consumed by other Terraform projects (e.g., root-consumer).
 
-The fastest way to deploy this project is by using the automated deployment script:
+## 📦 Prerequisites
 
-```
-chmod +x deploy.sh      # (only needed once to make the script executable)
-./deploy.sh             # runs the full deployment
-```
+Before running the script, ensure you have:
 
-This will:
+- AWS CLI installed and configured with appropriate credentials.
 
-    Zip the Lambda code
+- Terraform installed (use the pinned version if specified in the repo).
 
-    Deploy all infrastructure using Terraform:
-        - S3 static site
-        - CloudFront distribution
-        - API Gateway HTTP API and AUTH
-        - IAM role
-        - Lambda function
-        - Cognito user pool and client
+- Bash shell (Linux, macOS, or WSL recommended).
 
-    Extract required output values
+- IAM permissions to create and manage: S3, CloudFront, API Gateway, Lambda, Cognito, DynamoDB
 
-    Automatically generate the config.json file used by the frontend
-
-### Running the Frontend
-
-1. Create a test user in Cognito with username and password.
-2. Open the API endpoint url (find in outputs).
-2. Login with your Cognito credentials.
-3. Upload, list, download, or delete files securely.
-
-<img width="591" height="341" alt="Image" src="https://github.com/user-attachments/assets/e5c562a3-07d7-486f-bfa3-ce4f719b954f" />
-
-
-## **Manual Deployment** (optional)
-
-If you want to understand the underlying steps or need to deploy manually for troubleshooting, follow the instructions below.
-
-### Terraform Outputs
-
-After running terraform apply, you will get output values including:
-
-    user_pool_id
-
-    user_pool_client_id
-
-    api_gateway_url
-
-Make sure to use these outputs to configure the frontend script.js file (next step).
-
-### Frontend Configuration
-
-In your script.js, update the following constants with your Terraform outputs:
+## 🔑 Step 1 – Clone the Repository
 
 ```
-const poolData = {
-  UserPoolId: '<your_user_pool_id>',
-  ClientId: '<your_user_pool_client_id>',
-};
-
+git clone <repo-url>
+cd secure-file-share
 ```
 
-And for the functions in the same script.js:
+## ⚙️ Step 2 – Deployment Modes
+
+### Option A: Instance Mode (default)
+
+Deploys a new, isolated Secure File Share instance with local Terraform state.
+Good for quick testing, demos, and independent deployments.
+
+Run:
 
 ```
-
-const backendUrl = '<your_api_endpoint>';
-
-```
-### CORS Configuration
-
-Only if you want to test locally (not through cloudfront) the API Gateway's and S3 bucket’s CORS settings must allow requests from your local environment. This enables file uploads/downloads to work correctly when testing in the browser (e.g. via localhost).
-Default (development) configuration in Terraform:
-
-```
-cors_configuration {
-  allow_origins = ["https://${var.cloudfront_origin}", "http://localhost:63342"]         # Adjust if using a different local port or host
-  allow_methods = ["GET", "POST", "PUT", "DELETE"]   # Match the API actions you use
-  allow_headers = ["authorization", "content-type"]
-}
+./deploy.sh my-instance # Replace <my-instance> with an instance name of your choice
 ```
 
-Notes:
+You will be prompted for:
 
-    Update allow_origins to match your actual local environment URL (e.g. http://127.0.0.1:5500 or http://localhost:3000).
+- base_name → lowercase letters/numbers/hyphens (used for bucket & resource names).
 
-    For production, replace or restrict the allowed origins to your deployed frontend’s domain.
+- project → defaults to secure-file-share.
 
-### Lambda Deployment
+- aws_region → defaults to eu-central-1.
 
-The Lambda function code needs to be zipped and uploaded to AWS Lambda. This project assumes:
+This creates:
 
-    Your Lambda source code is in the lambda_src/ directory.
+- A dedicated S3 bucket for file storage
 
-    You create a ZIP archive named lambda_payload.zip containing all necessary files and dependencies.
+- CloudFront distribution + frontend hosting
 
-To create the ZIP:
+- API Gateway + Lambda for presigned URLs
 
+- Cognito User Pool for authentication
+
+After terraform apply, a config.json will be generated in the instance folder (used by the frontend).
+
+👉 Copy the files now present in your projects frontend/ -folder into the s3-static-site bucket created with terrafrom apply (script), login and start uploading/downloading files.
+
+👉 Create a Cognito user (see COGNITO_TEST_USER_GUIDE.md)
+
+👉 Login and start uploading/downloading files
+
+### Option B: Shared Mode
+
+Deploys a shared root stack with:
+
+Remote Terraform state in S3 + DynamoDB
+
+Secure File Share resources (bucket, CloudFront, API Gateway, Cognito)
+
+Run:
 ```
-cd modules/lambda_function/lambda_src
-zip -r ../lambda_payload.zip .
-cd ../../..
+./deploy.sh shared
 ```
 
-Run ```terraform apply```
+This is recommended for production or team use, where state locking and shared outputs are important.
+
+### Option C: Consumer Mode (example of how to reuse)
+
+root-consumer shows how another project can read outputs (bucket name, CloudFront domain) from the shared root using terraform_remote_state.
+
+Run:
+```
+cd root-consumer
+terraform init
+terraform apply
+```
+This allows other projects to integrate with the shared deployment without duplicating infrastructure.
+
+## 🧹 Step 3 – Cleanup
+
+- To destroy an instance:
+```
+cd root-instance-<name>
+terraform destroy
+```
+
+- To destroy the shared root:
+```
+cd root-shared
+terraform destroy
+```
+
+⚠️ Do not just delete local folders without destroying, or you risk leaving orphaned AWS resources.
+
+## 🚦 When to Use What?
+
+- Quick test / demo → use **Instance Mode** (no shared root needed).
+
+- Centralized / production → deploy **Shared Mode** once, then let others consume outputs.
+
+- Showcasing module reuse → use **Consumer Mode** with terraform_remote_state.
+
+## With this structure:
+
+- Instances are self-sufficient (local state).
+
+- Shared root demonstrates remote backend & cross-project reuse.
+
+- Consumer root is a reference example.
+
