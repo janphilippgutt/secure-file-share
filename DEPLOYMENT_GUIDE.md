@@ -67,16 +67,14 @@ After terraform apply, a config.json will be generated in the instance folder (u
 
 ### Option B: Shared Mode
 
-Deploys a shared root stack with:
-
-Remote Terraform state in S3 + DynamoDB
-
-Secure File Share resources (bucket, CloudFront, API Gateway, Cognito)
+Set up a remote Terraform state in S3 + DynamoDB with resources like in remote-backend/.
+(Or see https://github.com/janphilippgutt/aws-backend-setup for remote-backend setup in detail).
 
 Run:
 ```
 ./deploy.sh shared
 ```
+which deploys a shared root stack with Secure File Share resources (bucket, CloudFront, API Gateway, Cognito).
 
 This is recommended for production or team use, where state locking and shared outputs are important.
 
