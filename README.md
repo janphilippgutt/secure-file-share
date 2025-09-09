@@ -92,7 +92,12 @@ module "cloudfront" {
 
 ## Deployment
 
-Please find a deployment guide in the separate DEPLOYMENT_GUIDE.md.  
+The Secure File Share project supports two deployment modes via a unified deploy.sh script. 
+**Please find a deployment guide in the separate DEPLOYMENT_GUIDE.md.**  
+
+**1. Shared Mode** – deploys common resources (Cognito, CloudFront, Lambda, API Gateway, S3) with a remote Terraform state. Useful for centralized setups where other projects integrate with the shared deployment without duplicating infrastructure.
+
+**2. Instance Mode** – deploys a new, independent secure file share instance (frontend, API, Lambda, S3, Cognito). Each instance manages its own local Terraform state by default and can coexist with the shared stack. Each instance has its own S3 bucket, Lambda function, and API Gateway. Frontend configuration (config.json) is automatically generated for the instance.
 
 ## Live-Demo
 
